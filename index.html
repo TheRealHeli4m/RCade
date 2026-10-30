@@ -1,0 +1,20 @@
+<!doctype html>
+<body>
+    <form id="usernameForm", method="POST", action="/game.html">
+        <label for="username">Username: </label>
+        <input type="text" id="username" name="username">
+    </form>
+</body>
+<script>
+    const form = document.getElementById("usernameForm");
+
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById("username").value.trim();
+
+        if (username) {
+            window.location.href = "game.html"
+        }
+    })
+</script>

@@ -1,0 +1,30 @@
+<!doctype html>
+<canvas width="800" height="600" style="border: 1px solid"></canvas>
+<script>
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const me = Math.random().toString(36).slice(2);
+    const others = {};
+    const socket = new WebSocket(location.origin.replace("http", "ws"));
+
+    canvas.addEventListener("pointermove", (e) => {
+        if (socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({ id: me, x: e.offsetX, y: e.offsetY }));
+    });
+
+    socket.addEventListener("message", (e) => {
+        const { id, x, y } = JSON.parse(e.data);
+        others[id] = { x, y };
+    });
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const { x, y } of Object.values(others)) {
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
+</script>

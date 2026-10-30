@@ -1,10 +1,25 @@
 {
-  "name": "RCade",
+  "name": "rcade",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "private": true
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheRealHeli4m/RCade.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/TheRealHeli4m/RCade/issues"
+  },
+  "homepage": "https://github.com/TheRealHeli4m/RCade#readme",
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
 }
