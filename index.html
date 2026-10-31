@@ -1,121 +1,14 @@
 <!doctype html>
-<head>
-    <style>
-        html, body {
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #F5F5DC;
-        }
-
-        canvas {
-            background: #F5F5DC;
-            display: block;
-            border: none !important;
-            outline: none;
-        }
-
-    </style>
-</head>
 <body>
-    <canvas width="800" height="600" style="border: 1px solid"></canvas>
+    <form id="usernameForm" onsubmit="onUsernameSubmit(event)">
+        <label>Username: </label> <br>
+        <input type="text"; id="username"; name="username">
+    </form>
 </body>
 <script>
-    const canvas = document.querySelector("canvas");
-    const ctx = canvas.getContext("2d");
-    const me = Math.random().toString(36).slice(2);
-    const others = {};
-    const socket = new WebSocket(location.origin.replace("http", "ws"));
-
-    const getRandomColor = () => {
-        const r = Math.floor(Math.random() * 256);
-        const g = Math.floor(Math.random() * 256);
-        const b = Math.floor(Math.random() * 256);
-
-        return `rgb(${r}, ${g}, ${b})`;
+    function onUsernameSubmit(event) {
+        event.preventDefault();
+        window.location.href = "game.html";
     }
 
-    const dotColour = getRandomColor();
-
-    canvas.addEventListener("pointermove", (e) => {
-        const positionData = {
-            type: "UPDATE_POSITION",
-            payload: { id: me, x: e.offsetX, y: e.offsetY, colour: dotColour },
-        }
-        if (socket.readyState !== WebSocket.OPEN) return;
-        socket.send(JSON.stringify(positionData));
-    });
-
-    socket.addEventListener("message", (e) => {
-        try {
-            const data = JSON.parse(e.data);
-
-            switch (data.type) {
-                case "REQUEST_CLIENT_ID":
-                    const identifier = {
-                        type: "RETURN_CLIENT_ID",
-                        payload: { id: me }
-                    }
-                    if (socket.readyState !== WebSocket.OPEN) return;
-                    socket.send(JSON.stringify(identifier));
-                case "UPDATE_POSITION":
-                    const { id, x, y, colour } = data.payload;
-                    others[id] = { x, y, colour };
-                    break;
-                case "DELETE_DISCONNECTED_ID":
-                    const { deleteID } = data.payload;
-                    console.log(deleteID);
-                    console.log(others);
-                    delete others[deleteID];
-            }
-        } catch (error) {
-            console.log("Failed to parse incoming message:", error);
-        }
-    });
-
-    function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawOtherPlayers()
-        drawGrid(canvas.width, canvas.height);
-        requestAnimationFrame(draw);
-    }
-
-    function drawOtherPlayers() {
-        for (const { x, y, colour } of Object.values(others)) {
-            ctx.beginPath();
-            ctx.arc(x, y, 5, 0, Math.PI * 2);
-            ctx.fillStyle = colour;
-            ctx.fill();
-        }
-    }
-
-    const a = 2 * Math.PI / 6;
-    const r = 30;
-
-    function drawGrid(width, height) {
-        for (let y = r; y + r * (1 + Math.sin(a)) < height; y += r * Math.sin(a)) {
-            for (let x = r, j = 0; x + r < width; x += r * (1 + Math.cos(a)), y += (-1) ** j++ * r * Math.sin(a)) {
-                drawHexagon(x, y);
-            }
-        }
-    }
-
-    function drawHexagon(x, y) {
-        ctx.beginPath();
-        for (var i = 0; i < 6; i++) {
-            ctx.lineTo(x + r * Math.cos(a * i), y + r * Math.sin(a * i));
-        }
-        ctx.closePath();
-        ctx.stroke();
-    }
-
-    draw();
 </script>

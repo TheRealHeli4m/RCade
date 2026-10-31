@@ -10,10 +10,15 @@ let idArray = []
 // res (response)
 // as parameters. here they use a lambda rather than making a traditional function
 const server = http.createServer((req, res) => {
-    res.writeHead(200, { "Content-Type": "text/html" }); // writes a response back to the computer (http status 200 means OK)
-    fs.createReadStream(__dirname + "/index.html").pipe(res);
-    // creates a read pipeline between the computer and the server
-    // at the folder __dirname and file index.html, and puts it as a response
+    if (req.method === "GET" && req.url === "/") {
+        res.writeHead(200, { "Content-Type": "text/html" }); // writes a response back to the computer (http status 200 means OK)
+        fs.createReadStream(__dirname + "/index.html").pipe(res);
+        // creates a read pipeline between the computer and the server
+        // at the folder __dirname and file index.html, and puts it as a response
+    } else if (req.method === "GET" && req.url === "/game.html") {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        fs.createReadStream(__dirname + "/game.html").pipe(res);
+    }
 });
 
 const wss = new WebSocketServer({ server }); // creates a WebSocketServer around the http server
