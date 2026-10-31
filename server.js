@@ -10,6 +10,7 @@ const PORT = 3000;
 
 let idArray = []
 
+
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
