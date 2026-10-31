@@ -1,20 +1,51 @@
 <!doctype html>
-<body>
-    <form id="usernameForm", method="POST", action="/game.html">
-        <label for="username">Username: </label>
-        <input type="text" id="username" name="username">
-    </form>
-</body>
+<canvas width="800" height="600" style="border: 1px solid"></canvas>
 <script>
-    const form = document.getElementById("usernameForm");
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const me = Math.random().toString(36).slice(2);
+    const others = {};
+    const socket = new WebSocket(location.origin.replace("http", "ws"));
 
-    form.addEventListener("submit", (e) => {
-        e.preventDefault();
-
-        const username = document.getElementById("username").value.trim();
-
-        if (username) {
-            window.location.href = "game.html"
+    canvas.addEventListener("pointermove", (e) => {
+        const positionData = {
+            type: "UPDATE_POSITION",
+            payload: { id: me, x: e.offsetX, y: e.offsetY }
         }
-    })
+        if (socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify(positionData));
+    });
+
+    socket.addEventListener("message", (e) => {
+        try {
+            const data = JSON.parse(e.data);
+
+            switch (data.type) {
+                case "REQUEST_CLIENT_ID":
+                    const identifier = {
+                        type: "RETURN_CLIENT_ID",
+                        payload: { id: me }
+                    }
+                    if (socket.readyState !== WebSocket.OPEN) return;
+                    socket.send(JSON.stringify(identifier));
+                case "UPDATE_POSITION":
+                    const { id, x, y } = data.payload;
+                    others[id] = { x, y };
+                    break;
+            }
+        } catch (error) {
+            console.log("Failed to parse incoming message:", error);
+        }
+    });
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const { x, y } of Object.values(others)) {
+            ctx.beginPath();
+            ctx.arc(x, y, 10, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        requestAnimationFrame(draw);
+    }
+    draw();
 </script>
