@@ -20,26 +20,25 @@ const wss = new WebSocketServer({ server }); // creates a WebSocketServer around
 // wss allows for a clean two directional connection and communication, much faster than just http
 
 // .on is sort of like a listener that listens for the event stated in its first parameter
-wss.on("connection", (socket) => { // listens for a connection
+wss.on("connection", (ws) => { // listens for a connection
 
     const requestID = { type: "REQUEST_CLIENT_ID" }
 
-    socket.send(JSON.stringify(requestID));
+    ws.send(JSON.stringify(requestID));
 
-    socket.on("message", (rawData) => { // listens for a message
+    ws.on("message", (rawData) => { // listens for a message
         try {
             const data = JSON.parse(rawData);
 
             switch (data.type) {
                 case "RETURN_CLIENT_ID":
                     const { id } = data.payload
-                    socket.clientId = id
+                    ws.clientId = id
                     idArray.push(id)
-                    console.log(idArray)
                     break;
                 case "UPDATE_POSITION":
                     for (const client of wss.clients) {
-                        if (client !== socket && client.readyState === WebSocket.OPEN) {
+                        if (client !== ws && client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify(data)); // sends the data to every other client APART from the person who sent it
                         }
                     }
@@ -50,9 +49,18 @@ wss.on("connection", (socket) => { // listens for a connection
         }
     });
 
-    socket.on("close", (socket) => {
-        idArray.splice(socket.clientId, 1);
-        console.log(idArray)
+    ws.on("close", () => {
+        idArray.splice(ws.clientId, 1);
+        const deleteDisconnectedID = {
+            type: "DELETE_DISCONNECTED_ID",
+            payload: { deleteID: ws.clientId }
+        }
+
+        for (const client of wss.clients) {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(deleteDisconnectedID));
+            }
+        }
     })
 });
 
